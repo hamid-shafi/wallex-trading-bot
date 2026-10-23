@@ -1,0 +1,43 @@
+# Python and local environments
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# Local execution, generated research and private server reports
+/.local/
+/runs/
+/data/
+/paper-state/
+/paper-sessions/
+/news-fetch/
+/maintenance-artifacts/
+server-final-review.json
+server-integrity-review.json
+*.sqlite
+*.sqlite-*
+*.sqlite.*
+*.db
+*.db-*
+*.log
+
+# Credentials and local dashboard tokens
+.env
+.env.*
+!.env.example
+access-token
+dashboard-token
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Editor / operating-system output
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

@@ -1,0 +1,164 @@
+<!doctype html><html lang="fa" dir="rtl"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>دیدبان معاملات والکس</title>
+<style>
+:root{font-family:Tahoma,Arial,sans-serif;color:#172e2a;background:#f3f5ef;font-size:14px}*{box-sizing:border-box}body{margin:0}header{padding:26px 5%;background:#123f35;color:#f3f7ee;display:flex;justify-content:space-between;align-items:center}h1{font-size:24px;margin:0 0 9px}h2{font-size:17px;margin:0 0 18px}p{line-height:1.9}main{max-width:1400px;margin:24px auto;padding:0 26px}.muted{color:#74837a}.badge{border:1px solid #87bbaa;border-radius:30px;padding:8px 13px;font-size:12px}.banner{border-right:4px solid #bd8735;background:#fff4d9;padding:15px 20px;border-radius:8px;margin:18px 0;line-height:1.9}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:15px}.card,.panel{border:1px solid #dfe6dc;background:#fff;border-radius:15px;padding:23px}.value{font-size:25px;font-weight:bold;margin:15px 0 8px;font-variant-numeric:tabular-nums}.unit{font-size:12px;color:#74837a}.panels{display:grid;grid-template-columns:1.4fr 1fr;gap:18px;margin:18px 0}.panel{overflow:auto}table{border-collapse:collapse;width:100%;white-space:nowrap;font-size:12px}th,td{text-align:right;padding:13px 10px;border-bottom:1px solid #edf0ea}th{color:#77857b;background:#fafbf8;font-weight:normal}.mono,code{font-family:Consolas,monospace;direction:ltr;unicode-bidi:isolate;display:inline-block}button{background:#245e4c;border:0;color:white;border-radius:8px;padding:11px 20px;cursor:pointer;font-family:inherit}button.secondary{background:#e5eee5;color:#254e40}input{padding:13px;border:1px solid #b8cabb;border-radius:8px;width:100%;margin:12px 0;direction:ltr}#login{max-width:460px;margin:70px auto;padding:32px}#app{display:none}.empty{padding:23px;color:#7c887e;text-align:center}.good{color:#267350}.bad{color:#aa533b}svg{width:100%;height:180px}footer{text-align:center;padding:25px;color:#74837a;font-size:12px}#refresh{min-width:140px}#loginError{color:#a33}.flex{display:flex;gap:12px;align-items:center;flex-wrap:wrap}.wide{margin:18px 0}.risk{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.risk div{background:#f2f6ef;padding:13px;border-radius:8px;line-height:1.9}@media(max-width:850px){.grid{grid-template-columns:repeat(2,1fr)}.panels{grid-template-columns:1fr}header{padding:22px}.value{font-size:21px}.risk{grid-template-columns:1fr}}@media(max-width:450px){.grid{grid-template-columns:1fr}main{padding:0 14px}}
+</style>
+<header><div><h1>دیدبان معاملات والکس</h1><span style="color:#b6d2c1">موجودی، سفارش و تصمیم؛ با منبع قابل بررسی</span></div><span class="badge" id="modeBadge">فقط مشاهده</span></header>
+<section class="panel" id="login"><h2>ورود به داشبورد خصوصی</h2><p class="muted">رمز داشبورد را از خط فرمان همان برنامه در لیارا بخوانید. این رمز با کلید صرافی متفاوت است.</p><code>cat /data/observer/access-token</code><form id="loginForm"><input id="token" type="password" placeholder="رمز داشبورد" autocomplete="current-password" aria-label="رمز داشبورد" required><button type="submit">ورود امن</button></form><p id="loginError" role="alert"></p></section>
+<main id="app"><div class="flex" style="justify-content:space-between"><div><b id="engine">در حال دریافت وضعیت</b><p class="muted" id="updated"></p></div><div class="flex"><button id="refresh" class="secondary">به‌روزرسانی</button><button id="export" class="secondary">دریافت گزارش</button></div></div>
+<div class="banner" id="modeNotice" hidden></div><div class="banner" id="warning"></div><p class="muted" id="compatibility"></p><details id="historyPanel"><summary>سابقهٔ خطاهای قبلی</summary><p id="history" class="muted"></p></details><pre id="engineFailure" class="mono" style="white-space:pre-wrap"></pre>
+<div class="grid"><div class="card"><span class="muted" id="equityLabel">ارزش برآوردی کیف پول</span><div class="value" id="equity">—</div><span class="unit" id="equityUnit">تومان · قیمت خرید بازار، پیش از هزینه فروش</span></div><div class="card"><span class="muted" id="cashLabel">وجه نقد آزاد</span><div class="value" id="cash">—</div><span class="unit" id="cashUnit">تومان · منبع: کیف پول والکس</span></div><div class="card"><span class="muted">سود و زیان تحقق‌یافتهٔ بات</span><div class="value" id="pnl">—</div><span class="unit" id="pnlUnit">تومان · منبع: معاملات تأییدشده در دفتر بات</span></div><div class="card"><span class="muted" id="openLabel">سفارش باز در صرافی</span><div class="value" id="openCount">—</div><span class="unit" id="fills">در حال بررسی</span></div></div>
+<div class="panels"><section class="panel"><h2>مسیر ارزش سبد بات</h2><div id="chart"></div><p class="muted">نمودار فقط از ضربان‌های ثبت‌شدهٔ موتور ساخته می‌شود.</p></section><section class="panel"><h2>حدود جلسهٔ ثبت‌شده</h2><div class="risk"><div>سرمایه مبنا<br><b id="budget">—</b></div><div>حداکثر درگیری<br><b id="grossCap">—</b></div><div>حفاظ افت سرمایه<br><b id="drawdown">—</b></div><div>سقف هر موقعیت<br><b id="positionCap">—</b></div><div>حد زیان روزانه<br><b id="dailyLoss">—</b></div><div>ریسک هر ورود<br><b id="riskFraction">—</b></div><div>ریسک توقف کل سبد<br><b id="portfolioRisk">—</b></div><div>مرز پایین<br><b id="floor">—</b></div><div>مرز بالا<br><b id="ceiling">—</b></div><div>پایان برنامه‌ریزی‌شده<br><b id="deadline">—</b></div></div><p id="trial" class="muted"></p><details id="planPanel"><summary>تنظیمات پیشنهادی جلسهٔ بعد</summary><p id="plan" class="muted"></p></details></section></div>
+<section class="panel wide" id="adaptiveRiskPanel" hidden><h2>تنظیم خودکار ریسک در آزمایش</h2>
+<p id="adaptiveIntro" class="muted"></p><p id="adaptiveStatus"></p>
+<div class="risk"><div>ضریب ریسک ورود تازه<br><b id="adaptiveMultiplier">—</b></div><div>سقف مؤثر درگیری سبد<br><b id="adaptiveGross">—</b></div><div>سقف مؤثر هر موقعیت<br><b id="adaptivePosition">—</b></div><div>ریسک مؤثر هر ورود<br><b id="adaptiveEntryRisk">—</b></div><div>ریسک مؤثر توقف سبد<br><b id="adaptivePortfolioRisk">—</b></div></div>
+<p id="adaptiveReasons"></p><p id="adaptiveNews" class="muted"></p>
+<p class="muted">شاخص خبری از کلیدواژه‌های تیترها محاسبه می‌شود؛ به معنی تأیید مستقل وقوع رویدادها نیست.</p><div id="adaptiveMarkets"></div></section>
+<section class="panel wide"><h2 id="assetsTitle">دارایی‌های واقعی کیف پول</h2><p class="muted" id="valuationTimes"></p><div id="assets"></div></section>
+<div class="panels"><section class="panel"><h2 id="tradesTitle">معاملات تأییدشدهٔ والکس</h2><p class="muted" id="tradesSource">آخرین معاملات برگشتی صرافی؛ ممکن است شامل معاملات دستی هم باشند. دامنهٔ پاسخ لزوماً تمام تاریخچه نیست.</p><div id="trades"></div></section><section class="panel"><h2 id="opensTitle">سفارش‌های باز واقعی</h2><div id="opens"></div></section></div>
+<section class="panel wide"><h2>دارایی باقی‌مانده در دفتر جلسه</h2><div id="positions"></div></section><section class="panel wide"><h2>دفتر سفارش‌های بات</h2><div id="orders"></div></section>
+<section class="panel wide"><h2>آخرین تصمیم‌های راهبرد</h2><p class="muted">تصمیم یا سیگنال به معنی ارسال سفارش یا انجام معامله نیست.</p><div id="decisions"></div></section>
+<section class="panel wide"><h2>رویدادهای موتور</h2><div id="events"></div></section>
+<p class="muted">مدل پژوهشی است؛ سودآوری واقعی آن تأیید نشده. حدود خروج تضمین قیمت تسویه نیستند. اطلاعات مالی فقط پس از ورود نمایش داده می‌شوند.</p></main><footer>دیدبان خصوصی · بدون قابلیت خرید، فروش، برداشت یا فعال‌سازی موتور</footer>
+<script>
+const rawApiPrefix=globalThis.WALLEX_API_PREFIX??'';
+if(typeof rawApiPrefix!=='string'||(rawApiPrefix!==''&&!/^\/(?:[A-Za-z0-9_-]+\/)*[A-Za-z0-9_-]+\/?$/.test(rawApiPrefix)))throw Error('invalid dashboard API prefix');
+const API_PREFIX=rawApiPrefix.replace(/\/$/,'');
+const $=id=>document.getElementById(id);
+if(API_PREFIX==='/paper'){document.title='دیدبان آزمایش والکس';$('modeBadge').textContent='آزمایش با سرمایهٔ فرضی'}
+const numeric=v=>v!=null && Number.isFinite(Number(v));
+const num=v=>numeric(v)?Number(v).toLocaleString('fa-IR',{maximumFractionDigits:8}):'—';
+const money=v=>numeric(v)?Math.round(Number(v)).toLocaleString('fa-IR'):'—';
+const dt=t=>{if(t==null)return '—';const d=new Date(typeof t==='number'?(t<1e12?t*1000:t):t);return isNaN(d)?String(t):d.toLocaleString('fa-IR',{timeZone:'Asia/Tehran'})};
+let last=null,busy=false,connectionFailed=false;
+const reason={time_limit:'پایان مهلت زمانی',capital_floor:'رسیدن به مرز پایین',capital_ceiling:'رسیدن به مرز بالا',drawdown_halt:'توقف افت سرمایه',operator_stop:'توقف کاربر',edge_below_cost_and_uncertainty:'برتری کمتر از هزینه و عدم‌قطعیت',spread_too_wide:'فاصله خرید و فروش زیاد',learned_positive_net_edge:'برتری خالص مثبت در مدل',session_start:'شروع جلسه',decision:'تصمیم راهبرد',order_intent:'قصد ارسال سفارش',exchange_terminal:'تأیید وضعیت سفارش',paper_fill:'اجرای شبیه‌سازی‌شده',data_or_risk_error:'خطای داده یا ریسک',already_in_position:'موقعیت باز موجود است',kill_or_settle_or_stop:'خروج و تسویه'};
+const side=v=>v==='BUY'?'خرید':v==='SELL'?'فروش':v??'—';
+const percent=v=>numeric(v)?num(Number(v)*100)+'٪':'نامشخص';
+const band=(v,known)=>!known?'نامشخص':v==null?'غیرفعال':money(v)+' تومان';
+const riskReasons={
+  news_missing:'دادهٔ خبری موجود نیست',news_unknown:'خبر معتبر و تازه کافی نیست',news_stale:'آخرین خبر بیش از ۱۲ ساعت قدمت دارد',news_aging:'آخرین خبر بین ۶ تا ۱۲ ساعت قدمت دارد',news_coverage_limited:'پوشش خبر کمتر از دو منبع تازه است',
+  conflict_keywords_strong:'سهم کلیدواژه‌های تنش در تیترها بسیار بالاست',conflict_keywords_elevated:'سهم کلیدواژه‌های تنش در تیترها افزایش یافته',security_keywords_elevated:'کلیدواژه‌های امنیت رمزارز در چند خبر دیده شده',model_news_unknown:'دادهٔ معتبر خبر برای راهبرد موجود نیست',geopolitical_index_elevated:'شاخص ریسک ژئوپلیتیک افزایش یافته',news_invalid_or_unavailable:'دادهٔ خبر نامعتبر یا در دسترس نیست',
+  volatility_unknown:'نوسان بازار قابل محاسبه نیست',candles_stale:'دادهٔ کندل تازه نیست',volatility_extreme:'نوسان بسیار زیاد؛ ورود متوقف است',volatility_elevated:'نوسان بازار بالاست',book_stale:'دفتر سفارش تازه نیست',book_invalid:'دادهٔ دفتر سفارش معتبر نیست',spread_blocked:'فاصلهٔ خرید و فروش بیش از سقف مجاز است',spread_elevated:'فاصلهٔ خرید و فروش افزایش یافته',liquidity_blocked:'عمق بازار برای ورود کافی نیست',liquidity_thin:'عمق بازار کم است',market_data_unknown:'دادهٔ معتبر بازار موجود نیست'
+};
+function riskReason(value){
+  const code=String(value);if(riskReasons[code])return riskReasons[code];
+  const colon=code.indexOf(':');return colon>0&&riskReasons[code.slice(colon+1)]?code.slice(0,colon)+': '+riskReasons[code.slice(colon+1)]:code;
+}
+const duration=seconds=>!numeric(seconds)?'نامشخص':seconds>=86400?num(Math.round(seconds/8640)/10)+' روز':seconds>=3600?num(Math.round(seconds/360)/10)+' ساعت':seconds>=60?num(Math.round(seconds/6)/10)+' دقیقه':num(Math.round(seconds))+' ثانیه';
+function adaptiveNews(data){
+  if(!data){$('adaptiveNews').textContent='هنوز گزارشی از داده‌های خبر ثبت نشده است.';return}
+  const news=data.news||{};
+  const elapsed=numeric(data.as_of)?Math.max(0,Date.now()/1000-Number(data.as_of)):0;
+  const age=numeric(news.freshness_seconds)?Number(news.freshness_seconds)+elapsed:null;
+  $('adaptiveNews').textContent='زمان ارزیابی ریسک: '+dt(data.as_of)+' · سن انتشار آخرین خبر: '+duration(age)+' · تعداد منابع در شش ساعت پیش از ارزیابی: '+num(news.source_count)+' · پوشش حداقل دو منبع تازه: '+(news.coverage===true?'موجود':news.coverage===false?'ناکافی':'نامشخص')+' · پوشش خبر ورودی راهبرد: '+(news.model_news_coverage===true?'موجود':news.model_news_coverage===false?'ناکافی':'نامشخص')+' · سهم تیترهای دارای کلیدواژهٔ تنش: '+percent(news.conflict_share);
+}
+function adaptiveRisk(data,paper){
+  $('adaptiveRiskPanel').hidden=!paper;
+  if(!paper)return;
+  $('adaptiveIntro').textContent='این قاعدهٔ احتیاط آزمایشی فقط اندازه و سقف خریدهای فرضی تازه را کاهش می‌دهد. خروج از موقعیت‌ها با فروش همچنان مجاز است؛ سقف‌های پایهٔ جلسه تغییر نمی‌کنند.';
+  const multiplier=data?.multiplier,caps=data?.effective_caps||{};
+  $('adaptiveStatus').textContent=!numeric(multiplier)?'هنوز ارزیابی ریسک در دفتر ثبت نشده است.':multiplier===0?'ورود فرضی تازه متوقف است.':multiplier<1?'خرید فرضی تازه با سقف کاهش‌یافته ارزیابی می‌شود.':'سقف پایه برای خرید فرضی تازه برقرار است.';
+  $('adaptiveMultiplier').textContent=numeric(multiplier)?num(multiplier)+' برابر':'—';
+  $('adaptiveGross').textContent=percent(caps.gross_cap);$('adaptivePosition').textContent=percent(caps.position_cap);
+  $('adaptiveEntryRisk').textContent=percent(caps.risk_fraction);$('adaptivePortfolioRisk').textContent=percent(caps.portfolio_stop_risk);
+  $('adaptiveReasons').textContent=Array.isArray(data?.reasons)&&data.reasons.length?'علت‌های ثبت‌شده: '+data.reasons.map(riskReason).join('، '):data?'عامل کاهنده‌ای در این ارزیابی ثبت نشده است.':'';
+  adaptiveNews(data);
+  table('adaptiveMarkets',['بازار','ضریب ورود','نوسان روزانه','فاصلهٔ خرید و فروش / واحد پایه','عمق بازار / تومان','علت'],Object.entries(data?.markets||{}).map(([symbol,m])=>[symbol,numeric(m.multiplier)?num(m.multiplier)+' برابر':'—',percent(m.daily_volatility),num(m.spread_bps),money(m.depth_tmn),(m.reasons||[]).map(riskReason).join('، ')||'عامل کاهنده ثبت نشده']),!!data);
+}
+function quote(t){if(t.quote_asset)return t.quote_asset;return ['USDT','TMN','BTC','ETH'].find(q=>typeof t.symbol==='string' && t.symbol.length>q.length && t.symbol.endsWith(q))||null}
+function price(t){const q=quote(t);return (q==='TMN'?money(t.price):num(t.price))+' '+(q==='TMN'?'تومان':q||'واحد نامشخص')}
+function table(id,heads,rows,available=true){
+  const target=$(id);target.replaceChildren();
+  if(!available||!rows.length){const e=document.createElement('div');e.className='empty';e.textContent=available?'موردی ثبت نشده است':'دریافت این اطلاعات تأیید نشده است';target.append(e);return}
+  const t=document.createElement('table'),h=document.createElement('tr');
+  heads.forEach(x=>{const th=document.createElement('th');th.textContent=x;h.append(th)});t.append(h);
+  rows.forEach(row=>{const tr=document.createElement('tr');row.forEach(x=>{const td=document.createElement('td');td.textContent=x==null?'—':String(x);tr.append(td)});t.append(tr)});target.append(t);
+}
+function chart(points){
+  const el=$('chart');el.replaceChildren();
+  points=points.filter(p=>Number.isFinite(p.equity)&&Number.isFinite(p.ts)).slice().sort((a,b)=>a.ts-b.ts);
+  if(points.length<2){el.textContent='هنوز دادهٔ کافی برای نمودار وجود ندارد.';el.className='empty';return}
+  el.className='';const vals=points.map(p=>p.equity),lo=Math.min(...vals),hi=Math.max(...vals),range=hi-lo||Math.max(1,Math.abs(lo)*.001),start=points[0].ts,span=points.at(-1).ts-start||1;
+  const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');svg.setAttribute('viewBox','0 0 700 180');svg.setAttribute('role','img');svg.setAttribute('aria-label','ارزش سبد بر حسب زمان واقعی ثبت ضربان‌ها');
+  const line=document.createElementNS(svg.namespaceURI,'polyline');line.setAttribute('points',points.map(p=>(15+(p.ts-start)/span*670)+','+(160-(p.equity-lo)/range*140)).join(' '));line.setAttribute('fill','none');line.setAttribute('stroke','#337f65');line.setAttribute('stroke-width','3');svg.append(line);el.append(svg);
+  const p=document.createElement('p');p.className='muted';p.textContent=dt(start)+' — '+dt(points.at(-1).ts)+' · کمینه: '+money(lo)+' · بیشینه: '+money(hi)+' تومان';el.append(p);
+}
+function freshness(){
+  if(!last)return;
+  const stale=!numeric(last.completed_at)||Date.now()/1000-Number(last.completed_at)>75;
+  const title=last.presentation?.title||'وضعیت اجرای موتور تأیید نشده است';
+  $('engine').textContent=(stale||connectionFailed?'وضعیت فعلی تأیید نمی‌شود؛ آخرین گزارش: ':'')+title;
+  $('updated').textContent='آخرین دریافت: '+dt(last.completed_at)+(connectionFailed?' · ارتباط قطع یا دریافت ناموفق است':stale?' · داده قدیمی است':' · تازه‌سازی خودکار هر ۲۰ ثانیه');
+  const warnings=[...(last.presentation?.warnings||[])];
+  if(stale)warnings.push('داده تازه نیست؛ وضعیت کنونی موتور را از این اعداد نتیجه نگیرید.');
+  if(connectionFailed)warnings.push('دریافت تازه ناموفق بود؛ اطلاعات نمایش‌داده‌شده مربوط به آخرین پاسخ است.');
+  if(last.errors?.length)warnings.push('بخشی از دریافت‌ها ناموفق بود: '+last.errors.join('، '));
+  $('warning').textContent=warnings.join(' ');$('warning').hidden=!warnings.length;
+  if(last.mode==='shadow')adaptiveNews(last.journal?.summary?.adaptive_risk);
+}
+function render(d){
+  if(API_PREFIX==='/paper'&&d.mode!=='shadow')throw Error('paper dashboard received a non-simulation snapshot');
+  last=d;connectionFailed=false;$('login').style.display='none';$('app').style.display='block';
+  const j=d.journal||{},ledger=j.ledger||{},paper=d.mode==='shadow',risk=d.risk||{},trial=j.trial,summary=j.summary||{};
+  document.title=paper?'دیدبان آزمایش والکس':'دیدبان معاملات والکس';
+  adaptiveRisk(summary.adaptive_risk,paper);
+  $('modeBadge').textContent=paper?'آزمایش با سرمایهٔ فرضی':'فقط مشاهدهٔ حساب واقعی';
+  $('modeNotice').hidden=!paper;$('modeNotice').textContent='این جلسه آزمایشی است. موجودی، سود و معامله‌ها شبیه‌سازی شده‌اند؛ هیچ سفارشی به حساب واقعی ارسال نمی‌شود.';
+  $('equityLabel').textContent=paper?'ارزش برآوردی سبد فرضی':'ارزش برآوردی کیف پول';
+  $('equityUnit').textContent=paper?'تومان فرضی · منبع: آخرین ضربان شبیه‌سازی':'تومان · قیمت خرید بازار، پیش از هزینه فروش';
+  $('cashLabel').textContent=paper?'وجه نقد فرضی':'وجه نقد آزاد';
+  $('cashUnit').textContent=paper?'تومان فرضی · منبع: دفتر آزمایش':'تومان · منبع: کیف پول والکس';
+  $('pnlUnit').textContent=paper?'تومان فرضی · نتیجهٔ شبیه‌سازی با هزینه‌های مدل':'تومان · منبع: معاملات تأییدشده در دفتر بات';
+  $('openLabel').textContent=paper?'سفارش واقعی این آزمایش':'سفارش باز در صرافی';
+  $('equity').textContent=money(d.equity_tmn);$('cash').textContent=money((d.assets||[]).find(a=>a.asset==='TMN')?.free??(paper?ledger.cash_tmn:null));
+  $('pnl').textContent=money(ledger.realized_pnl_tmn);$('pnl').className='value '+(ledger.realized_pnl_tmn<0?'bad':'good');
+  $('openCount').textContent=paper?'ارسال نمی‌شود':Array.isArray(d.open_orders)?num(d.open_orders.length):'نامشخص';
+  $('fills').textContent=(paper?'اجرای شبیه‌سازی‌شده: ':'اجرای تأییدشدهٔ دفتر: ')+num(ledger.fills)+' · کارمزد: '+money(ledger.fees_tmn)+' تومان';
+  $('history').textContent=(d.presentation?.history||[]).join(' ');$('historyPanel').hidden=!d.presentation?.history?.length;
+  $('trial').textContent=trial?'دفتر '+(j.run_directory||'جلسه')+' · مهلت ثبت‌شده: '+dt(trial.deadline)+' · علت توقف: '+(reason[trial.reason]||trial.reason||'ثبت نشده'):'هنوز جلسه‌ای در دفتر ثبت نشده است.';
+  $('budget').textContent=numeric(d.budget_tmn)?money(d.budget_tmn)+' تومان':'نامشخص';$('grossCap').textContent=percent(risk.gross_cap);$('drawdown').textContent=percent(risk.max_drawdown);$('positionCap').textContent=percent(risk.position_cap);$('dailyLoss').textContent=percent(risk.daily_loss);$('riskFraction').textContent=percent(risk.risk_fraction);$('portfolioRisk').textContent=percent(risk.portfolio_stop_risk);
+  $('floor').textContent=band(risk.floor,risk.limits_known);$('ceiling').textContent=band(risk.ceiling,risk.limits_known);
+  $('deadline').textContent=risk.ends_at?dt(risk.ends_at):'مهلتی در دفتر ثبت نشده است';
+  const plan=d.release_plan;$('planPanel').hidden=!plan;
+  $('plan').textContent=plan?'این طرح به معنی شروع یا تغییر جلسهٔ ثبت‌شده نیست. سرمایه: '+money(plan.initial_cash)+' تومان · درگیری: '+percent(plan.gross_cap)+' · افت سرمایه: '+percent(plan.max_drawdown)+' · مرز پایین: '+band(plan.floor_tmn,true)+' · مرز بالا: '+band(plan.ceiling_tmn,true)+' · پایان: '+(plan.ends_at?dt(plan.ends_at):num(plan.seconds/60)+' دقیقه پس از شروع'):'';
+  $('assetsTitle').textContent=paper?'دارایی‌های فرضی آزمایش':'دارایی‌های واقعی کیف پول';
+  $('valuationTimes').textContent=(paper?'آخرین ارزش‌گذاری آزمایش: ':'زمان دریافت کیف پول: ')+dt(d.balance_at??j.curve?.at(-1)?.ts);
+  $('tradesTitle').textContent=paper?'معاملات شبیه‌سازی‌شده':'معاملات تأییدشدهٔ والکس';
+  $('tradesSource').textContent=paper?'این رکوردها اجرای فرضی روی دادهٔ بازار هستند؛ معاملهٔ واقعی محسوب نمی‌شوند.':'آخرین معاملات برگشتی صرافی؛ ممکن است شامل معاملات دستی هم باشند. دامنهٔ پاسخ لزوماً تمام تاریخچه نیست.';
+  $('opensTitle').textContent=paper?'سفارش‌های واقعی آزمایش: ارسال نمی‌شود':'سفارش‌های باز واقعی';
+  const trades=paper?(j.paper_trades||[]):(d.trades||[]);
+  table('assets',['دارایی','مقدار گزارش‌شده','قفل‌شده','آزاد','ارزش تومانی'],(d.assets||[]).map(a=>[a.asset,num(a.quantity),num(a.locked),num(a.free),money(a.value_tmn)]),Array.isArray(d.assets));
+  table('trades',['زمان','بازار','جهت','حجم','قیمت و واحد','کارمزد'],trades.map(t=>[dt(t.timestamp??t.ts),t.symbol,side(t.side||(t.isBuyer===true?'BUY':t.isBuyer===false?'SELL':null)),num(t.quantity),price(t),num(t.fee)+' '+(paper?'تومان':t.feeAsset||'واحد نامشخص')]),paper||Array.isArray(d.trades));
+  table('opens',['شناسه','بازار','جهت','حجم','اجراشده','قیمت و واحد'],(d.open_orders||[]).map(t=>[t.clientOrderId||t.id,t.symbol,side(t.side),num(t.quantity),num(t.executedQty),price(t)]),Array.isArray(d.open_orders));
+  table('positions',['بازار','ماندهٔ دفتر','بهای تمام‌شده / تومان'],Object.entries(summary.positions||{}).map(([symbol,p])=>[symbol,num(p.quantity),money(p.cost)]),!!j.summary);
+  table('orders',['شناسه','بازار','جهت','وضعیت','حجم درخواستی','حجم اجرا','قیمت و واحد','کل کارمزد (تومان)','علت'],(j.orders||[]).map(t=>[t.id,t.symbol,side(t.side),t.status,num(t.requested),num(t.executed),price(t),num(t.fee_tmn),reason[t.reason]||t.reason]),!!j.exists);
+  table('decisions',['زمان','بازار','حجم پیشنهادی','علت'],(j.decisions||[]).map(t=>[dt(t.ts),t.symbol,num(t.quantity),reason[t.reason]||t.reason]));
+  table('events',['زمان','نوع رویداد'],(j.events||[]).slice().reverse().map(t=>[dt(t.ts),reason[t.kind]||t.kind]));chart(j.curve||[]);
+  $('compatibility').textContent=d.market_compatibility==='pass'?'ساختار دادهٔ بازارهای بررسی‌شده سازگار است؛ این بررسی تأیید سودآوری یا تسویهٔ دفتر نیست.':paper?'منبع آزمایش، دادهٔ عمومی بازار است؛ حساب واقعی در این صفحه خوانده نمی‌شود.':'بررسی سازگاری بازارها هنوز تأیید نشده است.';
+  const failure=d.presentation?.current_failure;$('engineFailure').textContent=failure?dt(failure.ts)+' · '+failure.error_type+': '+failure.message:'';
+  document.querySelector('footer').textContent=paper?'دیدبان آزمایش · سرمایه و معاملات فرضی · بدون سفارش واقعی':'دیدبان خصوصی · بدون قابلیت خرید، فروش، برداشت یا فعال‌سازی موتور';
+  freshness();
+}
+async function request(url,options={}){
+  const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),10000);
+  try{const response=await fetch(API_PREFIX+url,{...options,signal:controller.signal});const body=response.ok?await response.json():null;return {response,body}}
+  finally{clearTimeout(timer)}
+}
+async function refresh(){
+  if(busy)return;busy=true;
+  try{const {response,body}=await request('/api/snapshot',{cache:'no-store'});
+    if(response.status===401){last=null;$('app').style.display='none';$('login').style.display='block';return}
+    if(!response.ok)throw Error('snapshot failed');render(body);
+  }catch(e){connectionFailed=true;freshness();if(!last)$('loginError').textContent='دریافت وضعیت ناموفق بود؛ اتصال را بررسی کنید.'}
+  finally{busy=false}
+}
+$('loginForm').addEventListener('submit',async e=>{
+  e.preventDefault();const token=$('token').value;$('token').value='';
+  try{const {response}=await request('/login',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({token})});
+    if(response.ok){$('loginError').textContent='';await refresh()}
+    else $('loginError').textContent=response.status===429?'تلاش‌های زیاد؛ یک دقیقه صبر کنید.':response.status===401?'رمز صحیح نیست.':'ورود به علت خطای سرویس انجام نشد.';
+  }catch(e){$('loginError').textContent='خطا یا پایان مهلت اتصال'}
+});
+$('refresh').onclick=refresh;
+$('export').onclick=()=>{if(!last)return;const a=document.createElement('a'),url=URL.createObjectURL(new Blob([JSON.stringify(last,null,2)],{type:'application/json'}));a.href=url;a.download=last.mode==='shadow'?'wallex-paper-report.json':'wallex-observer-report.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)};
+refresh();setInterval(refresh,20000);setInterval(freshness,5000);
+</script></html>

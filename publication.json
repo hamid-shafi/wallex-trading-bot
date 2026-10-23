@@ -1,0 +1,16 @@
+{
+  "repository": "https://github.com/hamid-shafi/wallex-trading-bot",
+  "upstream_archive_sha256": "0e38e3b0ed290ed239b40a797467f9c6d4fe30a38d3137186d9346f6d0c337a6",
+  "upstream_fee_manifest_sha256": "7475ccdf73d40a0a92ff8bf7d16dfd4dae0045b0ad175312110e627cd6dbb88a",
+  "engine_source_sha256": "59be964cc3730cc67ce36626c8ab2cb5a14883b9de7fc3c682da1980a4a716a9",
+  "model_sha256": "13fe05459e702a1488f36734251a740f4da061132cb873cbba16233e6e8115cb",
+  "source_and_seed_bytes_unchanged": true,
+  "documentation_changes": {
+    "README_FA.md": "Replaced private deployment and account narrative with generic setup documentation.",
+    "README.md": "Added public project overview.",
+    ".gitignore": "Added exclusions for local data and credentials.",
+    "fee-release.json": "Regenerated file hashes and clarified packaging-time status."
+  },
+  "validation_scope": "Retains the original release test results; public packaging verified by byte comparison, source/model hashes, manifest and secret/content review.",
+  "deployment_status": "Publishing source does not change the running server or activate trading."
+}
